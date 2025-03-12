@@ -40,9 +40,9 @@ def build_tree_from_index(entries):
 def visualize_tree(node, graph, parent=None):
     label = f"{node.name}\n({node.size} bytes)" if node.size > 0 else node.name
     color = 'red' if node.size > 0 else 'green'  # Example color logic
-    graph.add_node(node.name, label=label, size=node.size, color=color)
+    graph.add_node(node.name, label=label, size=node.size, color=color, shape='o')
     if parent:
-        graph.add_edge(parent, node.name)
+        graph.add_edge(parent, node.name, color='blue', style='solid')
     for child in node.children.values():
         visualize_tree(child, graph, node.name)
 
@@ -52,7 +52,7 @@ def draw_tree(graph, ax, is_3d=False):
     if is_3d:
         for node, (x, y, z) in pos.items():
             ax.scatter(x, y, z, s=100)
-            ax.text(x, y, z, node, size=10, zorder=1, color='k')
+            ax.text(x + 0.1, y + 0.1, z + 0.1, f"{node}\n({graph.nodes[node]['size']} bytes)", size=10, zorder=1, color='k')
         
         for edge in graph.edges():
             x = [pos[edge[0]][0], pos[edge[1]][0]]
@@ -60,7 +60,9 @@ def draw_tree(graph, ax, is_3d=False):
             z = [pos[edge[0]][2], pos[edge[1]][2]]
             ax.plot(x, y, z, color='b')
     else:
-        nx.draw(graph, pos, ax=ax, with_labels=True, node_size=500, node_color='skyblue', font_size=10, font_weight='bold')
+        nx.draw(graph, pos, ax=ax, with_labels=False, node_size=500, node_color='skyblue', font_size=10, font_weight='bold')
+        for node, (x, y) in pos.items():
+            ax.text(x + 0.02, y + 0.02, f"{node}\n({graph.nodes[node]['size']} bytes)", size=10, color='k')
     
     ax.grid(False)  # Disable the grid
     ax.set_axis_off()  # Disable the axis
@@ -77,7 +79,6 @@ def main():
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 8), gridspec_kw={'width_ratios': [3, 7]})
     ax1.axis('off')
-    # ax1.tick_params(axis='off',which='both',bottom=False,left=False,top=False) 
     ax1.text(0, 1, tree_str, fontsize=12, va='top', ha='left', family='monospace')
     draw_tree(graph, ax2)
     plt.show()
