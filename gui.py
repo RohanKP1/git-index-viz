@@ -6,6 +6,7 @@ import gin
 from main import build_tree_from_index, visualize_tree, draw_tree
 
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D  # Import for 3D plotting
 import sys
 
 class GitIndexVisualizer(ctk.CTk):
@@ -36,7 +37,11 @@ class GitIndexVisualizer(ctk.CTk):
         self.figure_frame = ctk.CTkFrame(self)
         self.figure_frame.pack(side="right", fill="both", expand=True)
 
-        self.figure, self.ax = plt.subplots(figsize=(7, 5))
+        self.figure = plt.figure(figsize=(7, 5))
+        self.ax = self.figure.add_subplot(111, projection='3d')  # Create a 3D subplot
+        self.ax.set_axis_off()
+        self.ax.grid(False)
+        self.ax.set_facecolor('white')
         self.canvas = FigureCanvasTkAgg(self.figure, master=self.figure_frame)
         self.canvas.get_tk_widget().pack(fill="both", expand=True)
 
@@ -54,7 +59,7 @@ class GitIndexVisualizer(ctk.CTk):
         visualize_tree(tree, graph)
 
         self.ax.clear()
-        draw_tree(graph, self.ax)
+        draw_tree(graph, self.ax, is_3d=True)  # Pass a flag to indicate 3D drawing
         self.canvas.draw()
 
     def on_closing(self):
