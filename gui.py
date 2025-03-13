@@ -1,13 +1,17 @@
 import customtkinter as ctk
 import networkx as nx
+import mplcursors
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import gin
-from main import build_tree_from_index, visualize_tree
+from main import build_tree_from_index, visualize_tree, draw_tree
 
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D  # Import for 3D plotting
 import sys
 import os
 import git
 import tempfile
-import plotly.graph_objects as go
+import shutil
 
 class GitIndexVisualizer(ctk.CTk):
     def __init__(self):
@@ -37,91 +41,54 @@ class GitIndexVisualizer(ctk.CTk):
         self.figure_frame = ctk.CTkFrame(self)
         self.figure_frame.pack(side="right", fill="both", expand=True)
 
+        self.figure = plt.figure(figsize=(7, 5))
+        self.ax = self.figure.add_subplot(111, projection='3d')  # Create a 3D subplot
+        self.ax.set_axis_off()
+        self.ax.grid(False)
+        self.ax.set_facecolor('white')
+        self.canvas = FigureCanvasTkAgg(self.figure, master=self.figure_frame)
+        self.canvas.get_tk_widget().pack(fill="both", expand=True)
+
     def visualize_repo(self):
         repo_url = self.entry.get()
+        temp_dir = tempfile.mkdtemp()
         try:
-            with tempfile.TemporaryDirectory() as temp_dir:
-                git.Repo.clone_from(repo_url, temp_dir)
-                index_file = os.path.join(temp_dir, ".git", "index")
+            repo = git.Repo.clone_from(repo_url, temp_dir)
+            index_file = os.path.join(temp_dir, ".git", "index")
 
-                if not os.path.isfile(index_file):
-                    self.textbox.delete("1.0", ctk.END)
-                    self.textbox.insert(ctk.END, f"Error: Index file not found at {index_file}")
-                    return
-
-                entries = list(gin.parse(index_file))
-                tree = build_tree_from_index(entries)
-                tree_str = str(tree)
-
+            if not os.path.isfile(index_file):
                 self.textbox.delete("1.0", ctk.END)
-                self.textbox.insert(ctk.END, tree_str)
+                self.textbox.insert(ctk.END, f"Error: Index file not found at {index_file}")
+                return
 
-                graph = nx.DiGraph()
-                visualize_tree(tree, graph)
+            entries = list(gin.parse(index_file))
+            tree = build_tree_from_index(entries)
+            tree_str = str(tree)
 
-                self.plot_3d_graph(graph)
+            self.textbox.delete("1.0", ctk.END)
+            self.textbox.insert(ctk.END, tree_str)
+
+            graph = nx.DiGraph()
+            visualize_tree(tree, graph)
+
+            self.ax.clear()
+            draw_tree(graph, self.ax, is_3d=True)  # Pass a flag to indicate 3D drawing
+            self.canvas.draw()
+
+            # Search for files in the repository and display them
+            results = []
+            for item in repo.tree().traverse():
+                results.append(item.path)
+            self.textbox.delete("1.0", ctk.END)
+            if results:
+                self.textbox.insert(ctk.END, "\n".join(results))
+            else:
+                self.textbox.insert(ctk.END, "No files found.")
         except Exception as e:
             self.textbox.delete("1.0", ctk.END)
             self.textbox.insert(ctk.END, f"Error: {str(e)}")
-
-    def plot_3d_graph(self, graph):
-        pos = nx.spring_layout(graph, dim=3)
-        edge_x = []
-        edge_y = []
-        edge_z = []
-        for edge in graph.edges():
-            x0, y0, z0 = pos[edge[0]]
-            x1, y1, z1 = pos[edge[1]]
-            edge_x.extend([x0, x1, None])
-            edge_y.extend([y0, y1, None])
-            edge_z.extend([z0, z1, None])
-
-        edge_trace = go.Scatter3d(
-            x=edge_x, y=edge_y, z=edge_z,
-            line=dict(width=2, color='#888'),
-            hoverinfo='none',
-            mode='lines')
-
-        node_x = []
-        node_y = []
-        node_z = []
-        node_text = []
-        for node in graph.nodes():
-            x, y, z = pos[node]
-            node_x.append(x)
-            node_y.append(y)
-            node_z.append(z)
-            node_text.append(graph.nodes[node]['label'])
-
-        node_trace = go.Scatter3d(
-            x=node_x, y=node_y, z=node_z,
-            mode='markers+text',
-            text=node_text,
-            textposition='top center',
-            hoverinfo='text',
-            marker=dict(
-                showscale=True,
-                colorscale='YlGnBu',
-                size=10,
-                colorbar=dict(
-                    thickness=15,
-                    title='Node Connections',
-                    xanchor='left'
-                ),
-                line_width=2))
-
-        fig = go.Figure(data=[edge_trace, node_trace],
-                        layout=go.Layout(
-                            title='3D Git Index Visualization',
-                            showlegend=False,
-                            margin=dict(b=0, l=0, r=0, t=0),
-                            scene=dict(
-                                xaxis=dict(showbackground=False),
-                                yaxis=dict(showbackground=False),
-                                zaxis=dict(showbackground=False)),
-                            hovermode='closest'))
-
-        fig.show()
+        finally:
+            shutil.rmtree(temp_dir)
 
     def on_closing(self):
         self.destroy()
