@@ -65,6 +65,7 @@ class GitIndexVisualizer(ctk.CTk):
             tree = build_tree_from_index(entries)
             tree_str = str(tree)
 
+<<<<<<< HEAD
             self.textbox.delete("1.0", ctk.END)
             self.textbox.insert(ctk.END, tree_str)
 
@@ -89,6 +90,11 @@ class GitIndexVisualizer(ctk.CTk):
             self.textbox.insert(ctk.END, f"Error: {str(e)}")
         finally:
             shutil.rmtree(temp_dir)
+=======
+        self.ax.clear()
+        draw_tree(graph, self.ax, is_3d=True)  # Pass a flag to indicate 3D drawing
+        self.canvas.draw()
+>>>>>>> origin/master
 
     def on_closing(self):
         self.destroy()
