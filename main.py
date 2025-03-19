@@ -1,7 +1,7 @@
 import gin
 import matplotlib.pyplot as plt
 import networkx as nx
-import mplcursors
+from treelib import Tree
 
 class TreeNode:
     def __init__(self, name, size=0):
@@ -12,16 +12,17 @@ class TreeNode:
     def add_child(self, child):
         self.children[child.name] = child
 
-    def __str__(self, level=0, prefix=""):
-        size_str = f" ({self.size} bytes)" if self.size > 0 else ""
-        ret = prefix + ("└── " if level > 0 else "") + self.name + size_str + "\n"
-        children = list(self.children.values())
-        for i, child in enumerate(children):
-            if i == len(children) - 1:
-                ret += child.__str__(level + 1, prefix + "    ")
-            else:
-                ret += child.__str__(level + 1, prefix + "│   ")
-        return ret
+    def __str__(self):
+        tree = Tree()
+        self._build_tree(tree, self)
+        return tree.show(stdout=False)
+
+    def _build_tree(self, tree, node, parent=None):
+        node_id = node.name
+        node_tag = f"{node.name} ({node.size} bytes)" if node.size > 0 else node.name
+        tree.create_node(node_tag, node_id, parent=parent)
+        for child in node.children.values():
+            self._build_tree(tree, child, node_id)
 
 def build_tree_from_index(entries):
     root = TreeNode("root")
