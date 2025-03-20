@@ -216,7 +216,7 @@ class GitIndexVisualizer(ctk.CTk):
             entries = list(gin.parse(index_file))
             tree = build_tree_from_index(entries)
             tree_str = str(tree)
-            print(tree_str)
+            # print(tree_str)
 
             graph = nx.DiGraph()
             visualize_tree(tree, graph)

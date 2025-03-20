@@ -1,3 +1,4 @@
+import os
 import gin
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -25,7 +26,8 @@ class TreeNode:
             self._build_tree(tree, child, node_id)
 
 def build_tree_from_index(entries):
-    root = TreeNode("root")
+    repo_name = os.path.basename(os.getcwd())  # Get the current working directory's name
+    root = TreeNode(repo_name)
     for entry in entries:
         if "name" in entry:
             parts = entry["name"].split('/')
