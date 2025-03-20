@@ -1,7 +1,7 @@
 "gin - a Git index file parser"
 version = "0.1.006"
 
-# https://github.com/git/git/blob/master/Documentation/technical/index-format.txt
+# https://github.com/git/git/blob/master/Documentation/technical/index-format.txt,,,
 
 import binascii
 import collections
