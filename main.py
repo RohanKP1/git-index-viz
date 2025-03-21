@@ -1,4 +1,6 @@
 import os
+
+from git import Repo
 import gin
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -25,8 +27,11 @@ class TreeNode:
         for child in node.children.values():
             self._build_tree(tree, child, node_id)
 
-def build_tree_from_index(entries):
-    repo_name = os.path.basename(os.getcwd())  # Get the current working directory's name
+def build_tree_from_index(entries, repo_url=None):
+    if repo_url is None:
+        repo_name = "root"  
+    else:      
+        repo_name = repo_url.split('.git')[0].split('/')[-1]  # Get the current working directory's name
     root = TreeNode(repo_name)
     for entry in entries:
         if "name" in entry:

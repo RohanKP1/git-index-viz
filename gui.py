@@ -124,14 +124,14 @@ class GitIndexVisualizer(ctk.CTk):
         current_time = time.time()
         for entry_path, mod_time in cache_entries:
             if current_time - mod_time > self.cache_ttl:
-                shutil.rmtree(entry_path)
+                shutil.rmtree(entry_path, ignore_errors=True)
                 cache_entries.remove((entry_path, mod_time))
         
         # Ensure we're within the cache size limit
         while len(cache_entries) > self.cache_size_limit:
             # Remove the oldest entry
             oldest_entry = cache_entries.pop(0)
-            shutil.rmtree(oldest_entry[0])
+            shutil.rmtree(oldest_entry[0], ignore_errors=True)
 
     def clear_cache(self):
         """Clear all cached repositories"""
@@ -175,7 +175,7 @@ class GitIndexVisualizer(ctk.CTk):
                 self.cache_status.configure(text="Using cached repository")
             else:
                 # Cache is too old, remove it
-                shutil.rmtree(cache_path)
+                shutil.rmtree(cache_path, ignore_errors=True)
                 self.cache_status.configure(text="Cache expired, refreshing...")
         else:
             self.cache_status.configure(text="Cloning repository...")
@@ -214,7 +214,7 @@ class GitIndexVisualizer(ctk.CTk):
                 return
 
             entries = list(gin.parse(index_file))
-            tree = build_tree_from_index(entries)
+            tree = build_tree_from_index(entries, repo_url)
             tree_str = str(tree)
             # print(tree_str)
 
