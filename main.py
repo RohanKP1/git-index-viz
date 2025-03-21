@@ -57,9 +57,12 @@ def visualize_tree(node, graph, parent=None):
 def draw_tree(graph, ax, is_3d=False):
     pos = nx.spring_layout(graph, dim=3) if is_3d else nx.spring_layout(graph)
     
+    # Calculate node sizes based on the number of edges (references)
+    node_sizes = [100 * (graph.degree(node) + 1) for node in graph.nodes()]
+    
     if is_3d:
         for node, (x, y, z) in pos.items():
-            ax.scatter(x, y, z, s=100)
+            ax.scatter(x, y, z, s=node_sizes[list(graph.nodes()).index(node)])
             ax.text(x + 0.1, y + 0.1, z + 0.1, f"{node}\n({graph.nodes[node]['size']} bytes)", size=10, zorder=1, color='k')
         
         for edge in graph.edges():
@@ -68,7 +71,7 @@ def draw_tree(graph, ax, is_3d=False):
             z = [pos[edge[0]][2], pos[edge[1]][2]]
             ax.plot(x, y, z, color='b')
     else:
-        nx.draw(graph, pos, ax=ax, with_labels=False, node_size=500, node_color='skyblue', font_size=10, font_weight='bold')
+        nx.draw(graph, pos, ax=ax, with_labels=False, node_size=node_sizes, node_color='skyblue', font_size=10, font_weight='bold')
         for node, (x, y) in pos.items():
             ax.text(x + 0.02, y + 0.02, f"{node}\n({graph.nodes[node]['size']} bytes)", size=10, color='k')
     
