@@ -1,3 +1,4 @@
+import uuid
 from treelib import Tree
 
 class TreeNode:
@@ -29,7 +30,7 @@ class TreeNode:
         return tree.show(stdout=False)
 
     def _build_tree(self, tree, node, parent=None):
-        node_id = node.name
+        node_id = str(uuid.uuid4())
         node_tag = f"{node.name} ({node.size} bytes)" if node.size > 0 else node.name
         tree.create_node(node_tag, node_id, parent=parent)
         for child in node.children.values():
