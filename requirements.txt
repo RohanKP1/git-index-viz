@@ -1,0 +1,9 @@
+customtkinter
+networkx
+mplcursors
+matplotlib
+plotly
+kaleido
+Pillow
+gitpython
+treelib
